@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
+#include <U8g2_for_Adafruit_GFX.h>
 
 typedef unsigned long ulong_t;
 typedef unsigned int uint_t;
@@ -20,30 +21,9 @@ typedef unsigned int uint_t;
 /// FIRST PROTOTYPE
 //Adafruit_PCD8544 display = Adafruit_PCD8544(10, 8, 9);
 
-// FIRST PCB V.1.0
+// FIRST PCB V.1.0 configuration of pins
 Adafruit_PCD8544 display = Adafruit_PCD8544(9, 8, 7);
-
-
-
-void setup() {
-  Serial.begin(9600);
-  //SPI.setClockDivider(SPI_CLOCK_DIV16);
-  SPI.setClockDivider(SPI_CLOCK_DIV2);
-  display.begin();
-  // put your setup code here, to run once:
-  display.setContrast(LCD_CONTRAST);
-  display.clearDisplay();
-  //  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println("GlideTime\n  v.0.0.1");
-  display.display();
-  delay(1000);
-
-  pinMode(2, INPUT_PULLUP);
-  pinMode(3, INPUT_PULLUP);
-  pinMode(4, INPUT_PULLUP);
-  pinMode(5, INPUT_PULLUP);
-}
+U8G2_FOR_ADAFRUIT_GFX dispFonts; //u8g2_for_adafruit_gfx;
 
 ulong_t screen_refresh_period = 100;
 ulong_t screen_refresh_last_time = 0;
@@ -78,17 +58,59 @@ ulong_t t_now;
 /////////////////////////////////////////////////////
 
 
-String millis_to_minutes_seconds_str(ulong_t _ms) {
+void setup() {
+  Serial.begin(9600);
+  //SPI.setClockDivider(SPI_CLOCK_DIV16);
+  SPI.setClockDivider(SPI_CLOCK_DIV2);
+  display.begin();
+  dispFonts.begin(display);
+  // put your setup code here, to run once:
+  display.setContrast(LCD_CONTRAST);
+  display.clearDisplay();
+  //  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println("GlideTime\n  v.0.0.1");
+  display.display();
+  delay(1000);
+
+  pinMode(2, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
+  pinMode(4, INPUT_PULLUP);
+  pinMode(5, INPUT_PULLUP);
+}
+
+
+
+/////////////////////////////////////////////////////
+
+String millis_to_minutes( ulong_t _ms ){
+  ulong_t secs = _ms / 1000;
+  ulong_t minutes = secs / 60;
+  String mm = String("") + minutes;
+  return mm;
+}
+
+String millis_to_seconds_remainder( ulong_t _ms ){
+  ulong_t secs = _ms / 1000;
+  ulong_t sec_remainder = secs % 60;
+  return String("") + sec_remainder;
+}
+
+String millis_to_minutes_seconds_str(ulong_t _ms){
+  ulong_t secs = _ms / 1000;
+  ulong_t minutes = secs / 60;
+  ulong_t sec_remainder = secs % 60;
+//  ulong_t deciseconds_remainder = (_ms - secs * 1000 ) / 100;
+  String mm_ss = String("") + minutes + ":" + sec_remainder;
+  return mm_ss;
+}
+
+String millis_to_minutes_seconds_deciseconds_str(ulong_t _ms) {
   ulong_t secs = _ms / 1000;
   ulong_t minutes = secs / 60;
   ulong_t sec_remainder = secs % 60;
   ulong_t deciseconds_remainder = (_ms - secs * 1000 ) / 100;
   String mm_ss_dot_ds = String("") + minutes + ":" + sec_remainder + "." + deciseconds_remainder;
-  /*
-    if( centiseconds_remainder % 10 == 0 ){
-      mm_ss_dot_ms += "0";  // add trailing decimal "0" in 100ths position for display continuity
-    }
-  */
   return mm_ss_dot_ds;
 }
 
@@ -103,31 +125,56 @@ void display_last_N(int n_last, int i_start) {
       break;
     }
     ulong_t t_a = time_intervals_A[i - 1];
+
     int curX = i < 10 ? 40 : 35;
     display.setCursor(curX, line_num * 8);
     display.print(i);
     display.drawFastVLine(46,0,38,0xFFFF);
     display.setCursor(48, line_num * 8);
-    display.print(millis_to_minutes_seconds_str(t_a));
+    display.print(millis_to_minutes_seconds_deciseconds_str(t_a).c_str());
+//    display.print(millis_to_minutes_seconds_str(t_a));
+
+
+/// The comment block below uses nice fonts, but seems to tax the CPU/memory and button presses are commonly missed (!!)
+/*
+    int curX = i < 10 ? 49 : 46;
+//    dispFonts.setFont(u8g2_font_helvR08_tf);
+//    dispFonts.setFont(u8g2_font_timR08_tf);
+    dispFonts.setFont(u8g2_font_haxrcorp4089_tr);
+    dispFonts.setCursor(curX, (1+line_num)*8);
+    dispFonts.print(i);
+    dispFonts.setCursor(57, (1+line_num) * 8);
+    dispFonts.print(millis_to_minutes_seconds_deciseconds_str(t_a));
+    display.drawFastVLine(55,0,38,0xFFFF);
+*/
+    
     line_num++;
   }
 }
 
 
 void display_current_interval_count( ulong_t interval_cnt ){
-  //  time_intervals_A_length
+/*
   display.setCursor(0,15);
   display.setTextSize(2);
   display.print(interval_cnt);
   display.setTextSize(1);
+*/
 }
 
 
 void display_current_interval(ulong_t time_ms) {
-  display.setCursor(0, 0);
-  //  display.setTextSize(2);  //2 seems to big when using the right column for times
-  display.println(millis_to_minutes_seconds_str(time_ms));
-  //  display.setTextSize(1);
+//  display.setCursor(0, 0);
+//  display.setTextSize(2);
+  dispFonts.setFont(u8g2_font_helvR14_tf);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+  dispFonts.setCursor(0,14);
+  dispFonts.print(millis_to_minutes(time_ms));
+  dispFonts.setCursor(0,28);
+  dispFonts.print(String(":")+millis_to_seconds_remainder(time_ms));
+//  dispFonts.print(millis_to_minutes_seconds_deciseconds_str(time_ms));
+//  dispFonts.print(millis_to_minutes_seconds_str(time_ms));
+//  display.println(millis_to_minutes_seconds_str(time_ms));
+//  display.setTextSize(1);
 }
 
 void display_round_time() {
@@ -231,7 +278,7 @@ void loop() {
       float time_elapsed = t_now - time_last_b_press;
       time_intervals_A[time_intervals_A_length] = time_elapsed;
       if( intervalA_i_disp_start == (int)time_intervals_A_length ){
-        intervalA_i_disp_start = (int)time_intervals_A_length;
+        intervalA_i_disp_start = (int)time_intervals_A_length +1;
       }
       time_intervals_A_length++;
       // TODO: check bounds of time_intervals_A_length
