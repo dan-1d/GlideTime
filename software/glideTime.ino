@@ -9,7 +9,7 @@ typedef unsigned int uint_t;
 
 #define FLIGHT_HISTORY_MAX  100   // limit of statically-allocated flight time history (intervalA)
 #define FLIGHT_HISTORY_DISPLAY_LENGTH  5  // number of previous flights to display at a time. Limited by LCD size and UI choices
-#define LCD_CONTRAST 70
+#define LCD_CONTRAST 60
 
 // Hardware SPI (faster, but must use certain hardware pins):
 // SCK is LCD serial clock (SCLK) - this is pin 13 on Arduino Uno
@@ -152,17 +152,6 @@ void display_last_N(int n_last, int i_start) {
   }
 }
 
-
-void display_current_interval_count( ulong_t interval_cnt ){
-/*
-  display.setCursor(0,15);
-  display.setTextSize(2);
-  display.print(interval_cnt);
-  display.setTextSize(1);
-*/
-}
-
-
 void display_current_interval(ulong_t time_ms) {
 //  display.setCursor(0, 0);
 //  display.setTextSize(2);
@@ -185,6 +174,16 @@ void display_round_time() {
     String elapsed_str = String("Round: ") + millis_to_minutes_seconds_str(t_now - round_time_start);
     display.print( elapsed_str );
   }
+}
+
+void display_decisecond_graphic(ulong_t time_ms) {
+  ulong_t secs = time_ms / 1000;
+  ulong_t sec_remainder = secs % 60;
+  ulong_t deciseconds_remainder = (time_ms - secs * 1000 ) / 100;
+  uint8_t line_length_max = 20;
+  uint8_t current_length = deciseconds_remainder*20/10;
+  display.drawFastHLine(0, 30, current_length, 0xFFFF);
+  display.drawFastVLine(line_length_max, 30, 4, 0xFFFF);
 }
 
 
@@ -294,7 +293,7 @@ void loop() {
     display_round_time();
     if ( intervalA_started == true ) {
       display_current_interval(t_now - time_last_b_press);
-      display_current_interval_count(time_intervals_A_length+1);
+      display_decisecond_graphic(t_now - time_last_b_press);
     }
     screen_refresh_last_time = t_now;
     display.display();
