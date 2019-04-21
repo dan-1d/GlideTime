@@ -1,0 +1,2 @@
+Description, Purchase Link
+Arduino clone "Pro Mini" 3.3V, https://www.aliexpress.com/item/Free-Shipping-1pcs-pro-mini-atmega328-Pro-Mini-328-Mini-ATMEGA328-3-3V-8MHz-for-Arduino/32342672626.html?spm=a2g0s.9042311.0.0.27424c4domMU3Z
