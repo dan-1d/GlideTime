@@ -1,3 +1,6 @@
+//
+// TODO: battery voltage seems to be reading low 
+//
 
 #include <SPI.h>
 #include <Adafruit_GFX.h>
@@ -7,6 +10,7 @@
 typedef unsigned long ulong_t;
 typedef unsigned int uint_t;
 
+#define VERSION "1.0"
 #define FLIGHT_HISTORY_MAX  100   // limit of statically-allocated flight time history (intervalA)
 #define FLIGHT_HISTORY_DISPLAY_LENGTH  5  // number of previous flights to display at a time. Limited by LCD size and UI choices
 #define LCD_CONTRAST 60
@@ -62,6 +66,8 @@ void setup() {
   Serial.begin(9600);
   //SPI.setClockDivider(SPI_CLOCK_DIV16);
   SPI.setClockDivider(SPI_CLOCK_DIV2);
+  int vbatt_adc = analogRead(A0);
+  float vbatt = vbatt_adc * 3.3*2.0/1024.0;
   display.begin();
   dispFonts.begin(display);
   // put your setup code here, to run once:
@@ -69,9 +75,11 @@ void setup() {
   display.clearDisplay();
   //  display.setTextSize(1);
   display.setCursor(0, 0);
-  display.println("GlideTime\n  v.0.0.1");
+  display.println(String("GlideTime\n")+VERSION);
+  display.println("\nbattery V=");
+  display.println(vbatt);
   display.display();
-  delay(1000);
+  delay(2000);
 
   pinMode(2, INPUT_PULLUP);
   pinMode(3, INPUT_PULLUP);
@@ -191,10 +199,26 @@ void display_decisecond_graphic(ulong_t time_ms) {
 ///   Main Loop
 ///
 
+
+// The accuracy of the millis timer seems to be off.
+// For a calibration run, calculate the % off
+// Use that to determine a ratio of how many ms until an error of 1 ms occurs
+// This value is used within the loop to correct "t_now"
+ulong_t time_last_correction = 0;
+ulong_t time_error_accum = 0;
+
 void loop() {
 
   /// Read new state of inputs: time and buttons
-  t_now = millis();
+  t_now = millis() + time_error_accum;
+
+  // Correct for time skew.
+  // add one to error correction every 600 millis (10000/16.666)
+  if(t_now - time_last_correction > 300 ){
+    time_error_accum += 1;
+    time_last_correction = t_now;
+  }
+  
   int b_time = 1 - digitalRead(2);
   int b_aux = 1 - digitalRead(3);
 
