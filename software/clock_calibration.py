@@ -11,7 +11,11 @@ args = argparser.parse_args()
 
 ser = serial.Serial(args.port, args.baud)
 print("Using port {}".format(ser.name))
+print("Waiting for start command")
 
+#while( ser.readline() != "start" ):
+#    pass
+print(ser.readline())
 
 # Send an integer every second
 for i in range(0,60):
