@@ -18,7 +18,7 @@ print("Waiting for start command")
 print(ser.readline())
 
 # Send an integer every second
-for i in range(0,60):
+for i in range(0,61):
     d = bytearray()
     d.append(i)
     print("{} ".format(i))

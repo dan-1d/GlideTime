@@ -5,6 +5,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
 #include <Bounce2.h>
+#include <EEPROM.h>
 
 
 
@@ -24,43 +25,84 @@ typedef unsigned int uint_t;
 #define VBATT_PIN A0
 #define button_debounce_time  50  //hold time of rising edge. 'high' required for this long before triggering
 #define screen_refresh_period 100
-ulong_t screen_refresh_last_time = 0;
+#define EEPROM_ADDR_CALIBRATION_DATA 0x10
+
 
 
 
 class GlideTimeConfig {
   Bounce debouncer1;
   Bounce debouncer2;
+  ulong_t clock_cal_millis_per_correction; // number of millis between corrections
+  int clock_cal_direction;  // + is add to running correction; - is subtract.
   stateRestoreClockCalibration();
   stateRestoreLcdContrast();
+
+private:
+  set_clock_cal();
+
 public:
+  Adafruit_PCD8544* display;  // TODO: move all common structures into base new base class and derive from that
+
   GlideTimeConfig(){
     debouncer1.attach(BUTTON_1_PIN);
     debouncer2.attach(BUTTON_2_PIN);
     debouncer1.interval(button_debounce_time);
     debouncer2.interval(button_debounce_time);
+    set_clock_cal();
+  }
+
+  // Apply a +1 or -1 clock correction factor every n millis. Returns n.
+  ulong_t clock_correction_increment_period(){
+    return clock_cal_millis_per_correction;
+  }
+
+  // returns +1 or -1 clock correction depending on calibration results
+  int clock_correction_direction(){
+    return clock_cal_direction;
   }
 
 
   configureClockCalibration(){
+    // wait for 1-second markers from Serial
     Serial.begin(115200);
-    // wait for a 1-second marker from Serial
-    int begin_ms = millis();
     // Read serial for 60 1-second intervals
+    Serial.write("start\n");
+    ulong_t begin_ms = millis();
+    for(uint_t i=0; i < 61; i++){
+//      Serial.write("Syncing");
+      while( Serial.available() == 0 );
+      //while( Serial.read() != -1 );
+      Serial.read();
+      display->clearDisplay();
+      display->setCursor(5,20);
+      display->print(i);
+      display->display();
+    }
 
-    int end_ms = millis();
-
+    ulong_t end_ms = millis();
+    display->clearDisplay();
+    display->setCursor(0,10);
+    display->print("start:");
+    display->println(begin_ms);
+    display->print("end:");
+    display->println(end_ms);
+    display->print("diff: ");
+    display->println(end_ms-begin_ms);
+    display->display();
     // Calculate ms error and save to eeprom
+    ulong_t ms_diff_per_minute = 60000 - (end_ms-begin_ms);
+    EEPROM.put(EEPROM_ADDR_CALIBRATION_DATA, ms_diff_per_minute);
+    set_clock_cal();
   }
 
 
-  enterConfigScreen(Adafruit_PCD8544& _display){
-    _display.clearDisplay();
-    _display.println("Configuration");
-    _display.println("1: sync via Serial");
-    _display.display();
+  enterConfigScreen(){
+    display->clearDisplay();
+    display->println("Configuration");
+    display->println("1:clock calib");
+    display->display();
     /// Wait for buttons to be released
-    delay(1000);
     while(true){
       debouncer1.update();
       debouncer2.update();
@@ -81,8 +123,8 @@ public:
       }
       if( debouncer1.rose() ){
         /// Synchronize to serial input reference clock
-        _display.println("Syncing...");
-        _display.display();
+        display->println("Syncing...");
+        display->display();
         configureClockCalibration();
       }
     }
@@ -99,6 +141,7 @@ public:
   /// Initialize with the display object
   GlideTimeInit(Adafruit_PCD8544& _display){
     display = &_display;
+    gtConfig.display = display;
   }
 
   setInputPins(){
@@ -109,7 +152,6 @@ public:
     pinMode(BUTTON_4_PIN, INPUT_PULLUP);
     pinMode(BUTTON_5_PIN, INPUT_PULLUP);
   }
-public:
   /// Call Init once from "setup" routine of Arduino
   /// Setup device pins appropriately as per input and output
   /// Restore permanent state of configuration options from EEPROM:
@@ -121,8 +163,12 @@ public:
     int button1State = 1 - digitalRead(BUTTON_1_PIN);
     int button2State = 1 - digitalRead(BUTTON_2_PIN);
     if( button1State == 1 && button2State == 1 ){
-      gtConfig.enterConfigScreen(*display);
+      gtConfig.enterConfigScreen();
     }
+  }
+
+  GlideTimeConfig& get_config(){
+    return gtConfig;
   }
 
 };
