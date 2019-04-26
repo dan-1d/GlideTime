@@ -2,6 +2,8 @@
 #include "GlideTime.h"
 
 
+const int button_pins_array[] = {BUTTON_1_PIN, BUTTON_2_PIN, BUTTON_3_PIN, BUTTON_4_PIN, BUTTON_5_PIN};
+
 GlideTimeConfig::set_clock_cal(){
   // calculate the number of millis to wait between adjustments.
   // ensure the millis value is positive, and save the direction to  clock_cal_direction

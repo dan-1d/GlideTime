@@ -13,7 +13,7 @@
 typedef unsigned long ulong_t;
 typedef unsigned int uint_t;
 
-#define VERSION "v.1.0.1"
+#define VERSION "v.1.0.2"
 #define FLIGHT_HISTORY_MAX  100   // limit of statically-allocated flight time history (intervalA)
 #define FLIGHT_HISTORY_DISPLAY_LENGTH  5  // number of previous flights to display at a time. Limited by LCD size and UI choices
 #define LCD_CONTRAST 60 // Specific value for each particular Nokie 5110 LCD vendor. It varies depending on supplier.
@@ -22,11 +22,13 @@ typedef unsigned int uint_t;
 #define BUTTON_3_PIN 4
 #define BUTTON_4_PIN 5
 #define BUTTON_5_PIN 6
+#define NUMBER_OF_BUTTONS 5
 #define VBATT_PIN A0
-#define button_debounce_time  50  //hold time of rising edge. 'high' required for this long before triggering
-#define screen_refresh_period 100
+#define BUTTON_DEBOUNCE_TIME  10  //hold time of rising edge. 'high' required for this long before triggering
+#define SCREEN_REFRESH_PERIOD 100
 #define EEPROM_ADDR_CALIBRATION_DATA 0x10
 
+extern const int button_pins_array[];
 
 
 
@@ -47,8 +49,8 @@ public:
   GlideTimeConfig(){
     debouncer1.attach(BUTTON_1_PIN);
     debouncer2.attach(BUTTON_2_PIN);
-    debouncer1.interval(button_debounce_time);
-    debouncer2.interval(button_debounce_time);
+    debouncer1.interval(BUTTON_DEBOUNCE_TIME);
+    debouncer2.interval(BUTTON_DEBOUNCE_TIME);
     set_clock_cal();
   }
 
@@ -171,6 +173,92 @@ public:
     return gtConfig;
   }
 
+};
+
+
+
+class GlideTimeState
+{
+public:
+  // timer intervals and history
+  ulong_t time_intervals_A[50]; // max of 50 entries
+  ulong_t time_intervals_B[50]; // max of 50 entries
+  ulong_t time_intervals_A_length = 0; // how many actual time entries have been recorded
+  ulong_t time_intervals_B_length = 0;
+  ulong_t time_last_b_press = 0;
+  ulong_t round_time_start = 0;
+  // intervalA is basically "flight time", interval_B is dropped time
+  bool intervalA_started = false; // otherwise, interval_B has started
+  int intervalA_i_disp_start = 0;
+  ulong_t t_now;
+  ulong_t screen_refresh_last_time;
+
+};
+
+
+
+
+
+class GlideTimeButtons
+{
+  Bounce buttons[NUMBER_OF_BUTTONS];
+public:
+  GlideTimeButtons(){
+    for(int i=0; i<NUMBER_OF_BUTTONS; i++){
+      buttons[i].attach(button_pins_array[i]);
+      buttons[i].interval(BUTTON_DEBOUNCE_TIME);
+    }
+  }
+
+  void update(){
+    for(int i=0; i<NUMBER_OF_BUTTONS; i++){
+      buttons[i].update();
+    }
+  }
+
+  bool rose(int button_i){
+    int i = button_i;
+    return buttons[i-1].rose();
+  }
+
+  bool read(int button_i){
+    int i = button_i;
+    return buttons[i-1].read();
+  }
+
+
+};
+
+
+
+class GlideTimeMain
+{
+private:
+  GlideTimeButtons buttons;
+
+public:
+  void flight_start_stop(){
+
+  }
+
+  void round_start_stop(){
+
+  }
+
+  GlideTimeMain(){
+  }
+
+  start(){
+    while(true){
+      buttons.update();
+      if(buttons.rose(1)){
+        flight_start_stop();
+      }
+      if(buttons.rose(2)){
+        round_start_stop();
+      }
+    }
+  }
 };
 
 #endif
