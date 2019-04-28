@@ -5,10 +5,7 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
-#include <U8g2_for_Adafruit_GFX.h>
-
 #include "GlideTime.h"
-
 
 
 // Hardware SPI (faster, but must use certain hardware pins):
@@ -20,8 +17,8 @@
 /// FIRST PROTOTYPE - Deprecated
 //Adafruit_PCD8544 display = Adafruit_PCD8544(10, 8, 9);
 // FIRST PCB V.1.0 configuration of pins
+
 Adafruit_PCD8544 display = Adafruit_PCD8544(9, 8, 7);
-U8G2_FOR_ADAFRUIT_GFX dispFonts; //u8g2_for_adafruit_gfx;
 
 GlideTimeInit gtInit = GlideTimeInit(display);
 
@@ -66,7 +63,7 @@ void setup() {
   int vbatt_adc = analogRead(VBATT_PIN);
   float vbatt = vbatt_adc * 3.3 * 2.0 / 1024.0;
   display.begin();
-  dispFonts.begin(display);
+//  dispFonts.begin(display);
   // put your setup code here, to run once:
   display.setContrast(LCD_CONTRAST);
   display.clearDisplay();
@@ -89,7 +86,7 @@ void setup() {
 ///   Main Loop
 ///
 
-GlideTimeMain gtMain;
+GlideTimeMain gtMain(gtInit);
 
 void loop() {
 

@@ -4,6 +4,7 @@
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
+#include <U8g2_for_Adafruit_GFX.h>
 #include <Bounce2.h>
 #include <EEPROM.h>
 
@@ -137,13 +138,15 @@ public:
 
 class GlideTimeInit {
 private:
-  Adafruit_PCD8544* display;
   GlideTimeConfig gtConfig;
 public:
+  Adafruit_PCD8544* display;
+  U8G2_FOR_ADAFRUIT_GFX dispFonts; //u8g2_for_adafruit_gfx;
   /// Initialize with the display object
   GlideTimeInit(Adafruit_PCD8544& _display){
     display = &_display;
-    gtConfig.display = display;
+    gtConfig.display = &_display;
+    dispFonts.begin(*display);
   }
 
   setInputPins(){
@@ -192,6 +195,12 @@ public:
   int intervalA_i_disp_start = 0;
   ulong_t t_now;
   ulong_t screen_refresh_last_time;
+  // The accuracy of the millis timer is not accurate and needs calibration.
+  // For a calibration run, calculate the % off
+  // Use that to determine a ratio of how many ms until an error of 1 ms occurs
+  // This value is used within the loop to correct "t_now"
+  ulong_t time_last_correction = 0;
+  ulong_t time_error_accum = 0;
 
 };
 
@@ -218,12 +227,12 @@ public:
 
   bool rose(int button_i){
     int i = button_i;
-    return buttons[i-1].rose();
+    return buttons[i-1].fell();
   }
 
   bool read(int button_i){
     int i = button_i;
-    return buttons[i-1].read();
+    return 1 - buttons[i-1].read();
   }
 
 
@@ -234,28 +243,56 @@ public:
 class GlideTimeMain
 {
 private:
+  GlideTimeState state;
   GlideTimeButtons buttons;
+  GlideTimeInit& gtInit;
+  void handle_time();
+  void flight_start_stop();
+  void round_start();
+  void display_update();
+  String millis_to_minutes( ulong_t _ms );
+  String millis_to_seconds_remainder( ulong_t _ms );
+  String millis_to_minutes_seconds_str(ulong_t _ms);
+  String millis_to_minutes_seconds_deciseconds_str(ulong_t _ms);
+  void display_last_N(int n_last, int i_start);
+  void display_current_interval(ulong_t time_ms);
+  void GlideTimeMain::display_round_time();
+  void display_decisecond_graphic(ulong_t time_ms);
+
+
 
 public:
-  void flight_start_stop(){
-
+  GlideTimeMain(GlideTimeInit& _gtInit) : gtInit(_gtInit)
+  {
   }
 
-  void round_start_stop(){
-
-  }
-
-  GlideTimeMain(){
-  }
-
-  start(){
+  void start(){
     while(true){
+      //  millisecond-based tasks, e.g. clock error correction
+      handle_time();
+
+      //
+      //  user-input
+      //
       buttons.update();
       if(buttons.rose(1)){
         flight_start_stop();
       }
-      if(buttons.rose(2)){
-        round_start_stop();
+      // button 2 does either: starts round time or cycles flight time screens
+      if(buttons.rose(2) && !state.intervalA_started && state.round_time_start == 0 ) {
+        round_start();
+      }else if ( buttons.rose(2) && state.time_intervals_A_length > 1){
+        state.intervalA_i_disp_start -= FLIGHT_HISTORY_DISPLAY_LENGTH;
+        if ( state.intervalA_i_disp_start < 0 ) {
+          state.intervalA_i_disp_start = (int) state.time_intervals_A_length;
+        }
+      }
+
+      //
+      // Update display
+      //
+      if ( state.t_now - state.screen_refresh_last_time > SCREEN_REFRESH_PERIOD ) {
+        display_update();
       }
     }
   }
