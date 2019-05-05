@@ -33,7 +33,7 @@ void GlideTimeConfig::configureClockCalibration(){
   Serial.begin(115200);
   // Read serial for 60 1-second intervals
   Serial.write("start\n");
-  ulong_t begin_ms = millis();
+  ulong_t begin_ms = 0;
 
   // Perform calibration while displaying the same data on the screen as
   // would run in the real system. This helps reduce timing error that
@@ -41,10 +41,15 @@ void GlideTimeConfig::configureClockCalibration(){
   //
   //
   uint_t cal_secs = 0;
-  while(cal_secs < 61){
+  while(cal_secs < 2+3*60){
     if(Serial.available()){
       Serial.read();
       cal_secs++;
+    }
+    // First iteration, log the start time
+    // If done prior to receiving first tick, may be too far off (latency of send+receive)
+    if( cal_secs == 1 ){
+      begin_ms = millis();
     }
     // Call display routines here;
     gtMain->handle_time();  //don't use any correction factor
@@ -67,7 +72,7 @@ void GlideTimeConfig::configureClockCalibration(){
   display->println(end_ms-begin_ms);
   display->display();
   // Calculate ms error and save to eeprom
-  ulong_t ms_diff_per_minute = 60000 - (end_ms-begin_ms);
+  ulong_t ms_diff_per_minute = 3*60000 - (end_ms-begin_ms);
   EEPROM.put(EEPROM_ADDR_CALIBRATION_DATA, ms_diff_per_minute);
   set_clock_cal();
 }
