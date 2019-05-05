@@ -4,23 +4,6 @@
 
 const int button_pins_array[] = {BUTTON_1_PIN, BUTTON_2_PIN, BUTTON_3_PIN, BUTTON_4_PIN, BUTTON_5_PIN};
 
-GlideTimeConfig::set_clock_cal(){
-  // calculate the number of millis to wait between adjustments.
-  // ensure the millis value is positive, and save the direction to  clock_cal_direction
-  ulong_t ms_diff_per_minute;
-  EEPROM.get(EEPROM_ADDR_CALIBRATION_DATA, ms_diff_per_minute);
-  if( ms_diff_per_minute != 0 ){
-    ms_diff_per_minute = ms_diff_per_minute < 0 ? -ms_diff_per_minute : ms_diff_per_minute;
-    clock_cal_millis_per_correction = 60000 / ms_diff_per_minute;
-    clock_cal_direction = ms_diff_per_minute > 0 ? 1 : 0;
-  }
-
-  Serial.begin(9600);
-  Serial.print("ms_diff_per_minute=");
-  Serial.println(ms_diff_per_minute);
-  Serial.print("clock_cal_millis_per_correction=");
-  Serial.println(clock_cal_millis_per_correction);
-}
 
 
 ///////////////////////////
@@ -45,7 +28,10 @@ void GlideTimeMain::handle_time(){
   state.t_now = millis() + state.time_error_accum;
   // Correct for time skew.
   // add one to error correction every "clock_correction_increment_period" millis
-  if (state.t_now - state.time_last_correction > gtInit.get_config().clock_correction_increment_period() ) {
+  ulong_t clock_correction_increment_period = gtInit.get_config().clock_correction_increment_period();
+  if ( clock_correction_increment_period > 0 &&
+    state.t_now - state.time_last_correction > clock_correction_increment_period )
+  {
     state.time_error_accum +=  gtInit.get_config().clock_correction_direction();
     state.time_last_correction = state.t_now;
   }
@@ -187,4 +173,37 @@ void GlideTimeMain::display_decisecond_graphic(ulong_t time_ms) {
   uint8_t current_length = deciseconds_remainder * 20 / 10;
   gtInit.display->drawFastHLine(0, 30, current_length, 0xFFFF);
   gtInit.display->drawFastVLine(line_length_max, 30, 4, 0xFFFF);
+}
+
+
+void GlideTimeMain::start()
+{
+  while(true){
+    //  millisecond-based tasks, e.g. clock error correction
+    handle_time();
+
+    //
+    //  user-input
+    //
+    buttons.update();
+    if(buttons.rose(1)){
+      flight_start_stop();
+    }
+    // button 2 does either: starts round time or cycles flight time screens
+    if(buttons.rose(2) && !state.intervalA_started && state.round_time_start == 0 ) {
+      round_start();
+    }else if ( buttons.rose(2) && state.time_intervals_A_length > 1){
+      state.intervalA_i_disp_start -= FLIGHT_HISTORY_DISPLAY_LENGTH;
+      if ( state.intervalA_i_disp_start < 0 ) {
+        state.intervalA_i_disp_start = (int) state.time_intervals_A_length;
+      }
+    }
+
+    //
+    // Update display
+    //
+    if ( state.t_now - state.screen_refresh_last_time > SCREEN_REFRESH_PERIOD ) {
+      display_update();
+    }
+  }
 }
