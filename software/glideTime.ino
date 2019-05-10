@@ -6,7 +6,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
 #include "GlideTime.h"
-
+#include "consts.h"
 
 // Hardware SPI (faster, but must use certain hardware pins):
 // SCK is LCD serial clock (SCLK) - this is pin 13 on Arduino Uno
@@ -30,7 +30,7 @@ void setup() {
   //SPI.setClockDivider(SPI_CLOCK_DIV16);
   SPI.setClockDivider(SPI_CLOCK_DIV2);  // Div2 for 3.3v 8Mhz arduino part and Nokia 5110 LCD
   int vbatt_adc = analogRead(VBATT_PIN);
-  float vbatt = vbatt_adc * 3.3 * 2.0 / 1024.0;
+  float vbatt = vbatt_adc * 3.3 * 2.0 / 1024.0  + BATT_V_ADC_CORRECTION;
   display.begin();
 //  dispFonts.begin(display);
   // put your setup code here, to run once:

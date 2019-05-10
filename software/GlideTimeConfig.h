@@ -72,13 +72,15 @@ public:
       }
     }
     // Manage configuration menu.
+    // TODO: Make this menu more elaborate.
+    //  Now:  button 1 starts calibration, button 2 ends it.
     while(true){
       debouncer1.update();
       debouncer2.update();
       int button1State = 1 - debouncer1.read();
       int button2State = 1 - debouncer2.read();
-      if( button1State == 1 && button2State == 1 ){
-        break;  /// Exit setup if both buttons pressed again
+      if( button2State == 1 ){
+        break;  /// Exit setup if button 2 pressed
       }
       if( debouncer1.rose() ){
         /// Synchronize to serial input reference clock
