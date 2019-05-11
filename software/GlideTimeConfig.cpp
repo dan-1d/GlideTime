@@ -75,7 +75,7 @@ void GlideTimeConfig::configureClockCalibration(){
 
   ulong_t end_ms = millis();
   // Calculate ms error and save to eeprom
-  long ms_diff_per_minute = (long)CALIBRATION_DURATION_SECONDS*1000 - (long)(end_ms-begin_ms);
+  long ms_diff_per_minute = ((long)CALIBRATION_DURATION_SECONDS*1000 - (long)(end_ms-begin_ms)) / (CALIBRATION_DURATION_SECONDS/60);
   EEPROM.put(EEPROM_ADDR_CALIBRATION_DATA, ms_diff_per_minute);
   display->clearDisplay();
   display->setCursor(0,10);
