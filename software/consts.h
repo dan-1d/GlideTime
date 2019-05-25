@@ -15,6 +15,8 @@
 #define EEPROM_ADDR_CALIBRATION_DATA 0x10
 #define CALIBRATION_DURATION_SECONDS 60 * 1
 #define BATT_V_ADC_CORRECTION 0.05 // VOLTS..   //float vbatt = vbatt_adc * 3.3 * 2.0 / 1024.0;
+#define DEFAULT_CLOCK_CALIBRATION_MS_PER_CORRECTION 2000 //hardcoded calibration value
+#define DEFAULT_CLOCK_CALIBRATION_DIRECTION 1 //hardcoded calibration value
 
 //Global Defines
 typedef unsigned long ulong_t;
