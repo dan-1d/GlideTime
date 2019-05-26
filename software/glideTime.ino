@@ -1,5 +1,4 @@
 //
-// TODO: battery voltage seems to be reading low
 //
 
 #include <SPI.h>

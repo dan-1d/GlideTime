@@ -7,7 +7,7 @@ import time
 argparser = argparse.ArgumentParser()
 argparser.add_argument("port")
 argparser.add_argument("--baud", type=int, default=115200)
-argparser.add_argument("--seconds", type=int, default=6*60)
+argparser.add_argument("--seconds", type=int, default=1*60)
 args = argparser.parse_args()
 
 ser = serial.Serial(args.port, args.baud)
