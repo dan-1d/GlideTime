@@ -2,9 +2,10 @@
 #ifndef GLIDETIME_H_
 #define GLIDETIME_H_
 
-#include <Adafruit_GFX.h>
-#include <Adafruit_PCD8544.h>
-#include <U8g2_for_Adafruit_GFX.h>
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_PCD8544.h>
+//#include <U8g2_for_Adafruit_GFX.h>
+#include <U8g2lib.h>
 #include <Bounce2.h>
 #include <EEPROM.h>
 #include "GlideTimeConfig.h"
@@ -32,14 +33,14 @@ private:
   }
 
 public:
-  Adafruit_PCD8544* display;
-  U8G2_FOR_ADAFRUIT_GFX dispFonts; //u8g2_for_adafruit_gfx;
+  U8G2* display;
+//  U8G2_FOR_ADAFRUIT_GFX dispFonts; //u8g2_for_adafruit_gfx;
 
   /// Initialize with the display object
-  GlideTimeInit(Adafruit_PCD8544& _display){
+  GlideTimeInit(U8G2 & _display){
     display = &_display;
     gtConfig.display = &_display;
-    dispFonts.begin(*display);
+//    dispFonts.begin(*display);
   }
 
   /// Call Init once from "setup" routine of Arduino

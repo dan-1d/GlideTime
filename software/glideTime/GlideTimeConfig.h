@@ -1,14 +1,14 @@
 #ifndef GLIDETIMECONF_H_
 #define GLIDETIMECONF_H_
 
-#include <Adafruit_GFX.h>
-#include <Adafruit_PCD8544.h>
-#include <U8g2_for_Adafruit_GFX.h>
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_PCD8544.h>
+//#include <U8g2_for_Adafruit_GFX.h>
+#include <U8g2lib.h>
 #include <Bounce2.h>
 #include <EEPROM.h>
 #include "GlideTime.h"
 #include "consts.h"
-
 
 class GlideTimeMain;
 
@@ -27,7 +27,7 @@ private:
   set_clock_cal();
 
 public:
-  Adafruit_PCD8544* display;  // TODO: move all common structures into base new base class and derive from that
+  U8G2* display;  // TODO: move all common structures into base new base class and derive from that
 
   GlideTimeConfig(){
     debouncer1.attach(BUTTON_1_PIN);
