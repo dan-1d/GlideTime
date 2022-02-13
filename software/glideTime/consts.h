@@ -1,6 +1,6 @@
 
-#define VERSION "v.1.0.2"
-#define FLIGHT_HISTORY_MAX  50   // limit of statically-allocated flight time history (intervalA)
+#define VERSION F("v.1.0.3")
+#define FLIGHT_HISTORY_MAX  20   // limit of statically-allocated flight time history (intervalA)
 #define FLIGHT_HISTORY_DISPLAY_LENGTH  5  // number of previous flights to display at a time. Limited by LCD size and UI choices
 //#define LCD_CONTRAST 60 // Specific value for each particular Nokie 5110 LCD vendor. It varies depending on supplier.
 #define LCD_CONTRAST 128

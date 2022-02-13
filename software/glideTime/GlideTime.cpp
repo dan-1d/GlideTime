@@ -2,7 +2,7 @@
 #include "GlideTime.h"
 
 
-const int button_pins_array[] = {BUTTON_1_PIN, BUTTON_2_PIN, BUTTON_3_PIN, BUTTON_4_PIN, BUTTON_5_PIN};
+const uint8_t button_pins_array[] = {BUTTON_1_PIN, BUTTON_2_PIN, BUTTON_3_PIN, BUTTON_4_PIN, BUTTON_5_PIN};
 
 
 
@@ -19,7 +19,8 @@ void GlideTimeMain::display_update(){
     display_decisecond_graphic(state.t_now - state.time_last_b_press);
   }
   state.screen_refresh_last_time = state.t_now;
-  gtInit.display->display();
+  //gtInit.display->display();
+  gtInit.display->sendBuffer();
 }
 
 
@@ -121,7 +122,7 @@ void GlideTimeMain::display_last_N(int n_last, int i_start) {
     int curX = i < 10 ? 40 : 35;
     gtInit.display->setCursor(curX, line_num * 8);
     gtInit.display->print(i);
-    gtInit.display->drawFastVLine(46, 0, 38, 0xFFFF);
+    gtInit.display->drawVLine(46, 0, 38);
     gtInit.display->setCursor(48, line_num * 8);
     gtInit.display->print(millis_to_minutes_seconds_deciseconds_str(t_a).c_str());
     /// The comment block below uses nice fonts, but seems to tax the CPU/memory and button presses are commonly missed (!!)
@@ -144,11 +145,11 @@ void GlideTimeMain::display_last_N(int n_last, int i_start) {
 void GlideTimeMain::display_current_interval(ulong_t time_ms) {
   //  display.setCursor(0, 0);
   //  display.setTextSize(2);
-  gtInit.dispFonts.setFont(u8g2_font_helvR14_tf);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-  gtInit.dispFonts.setCursor(0, 14);
-  gtInit.dispFonts.print(millis_to_minutes(time_ms));
-  gtInit.dispFonts.setCursor(0, 28);
-  gtInit.dispFonts.print(String(":") + millis_to_seconds_remainder(time_ms));
+  gtInit.display->setFont(u8g2_font_helvR14_tf);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+  gtInit.display->setCursor(0, 14);
+  gtInit.display->print(millis_to_minutes(time_ms));
+  gtInit.display->setCursor(0, 28);
+  gtInit.display->print(String(":") + millis_to_seconds_remainder(time_ms));
   //  dispFonts.print(millis_to_minutes_seconds_deciseconds_str(time_ms));
   //  dispFonts.print(millis_to_minutes_seconds_str(time_ms));
   //  display.println(millis_to_minutes_seconds_str(time_ms));
@@ -158,7 +159,7 @@ void GlideTimeMain::display_current_interval(ulong_t time_ms) {
 void GlideTimeMain::display_round_time() {
   gtInit.display->setCursor(0, 40);
   if ( state.round_time_start == 0 ) {
-    gtInit.display->print("Ready psh Btn");
+    gtInit.display->print(F("Ready psh Btn"));
   } else {
     String elapsed_str = String("Round: ") + millis_to_minutes_seconds_str(state.t_now - state.round_time_start);
     gtInit.display->print( elapsed_str );
@@ -171,8 +172,8 @@ void GlideTimeMain::display_decisecond_graphic(ulong_t time_ms) {
   ulong_t deciseconds_remainder = (time_ms - secs * 1000 ) / 100;
   uint8_t line_length_max = 20;
   uint8_t current_length = deciseconds_remainder * 20 / 10;
-  gtInit.display->drawFastHLine(0, 30, current_length, 0xFFFF);
-  gtInit.display->drawFastVLine(line_length_max, 30, 4, 0xFFFF);
+  gtInit.display->drawHLine(0, 30, current_length);
+  gtInit.display->drawVLine(line_length_max, 30, 4);
 }
 
 

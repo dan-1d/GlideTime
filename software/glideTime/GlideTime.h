@@ -2,9 +2,6 @@
 #ifndef GLIDETIME_H_
 #define GLIDETIME_H_
 
-//#include <Adafruit_GFX.h>
-//#include <Adafruit_PCD8544.h>
-//#include <U8g2_for_Adafruit_GFX.h>
 #include <U8g2lib.h>
 #include <Bounce2.h>
 #include <EEPROM.h>
@@ -12,7 +9,7 @@
 #include "consts.h"
 
 
-extern const int button_pins_array[];
+extern const uint8_t button_pins_array[];
 
 // Need forward declaration of GlideTimeConfig.
 //class GlideTimeConfig;

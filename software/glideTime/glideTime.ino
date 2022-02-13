@@ -1,15 +1,18 @@
-//
+//  Refactor notes for display HX1230
+// -- This display has higher resolution than Nokia 5110
+// -- uses software SPI for data == slow. May miss button presses (need to test to confirm)
+// -- Library u8g2, if configured in full frame buffer mode, uses almost all available RAM.
+// -- 
 //
 
 #include <SPI.h>
-//#include <Adafruit_GFX.h>
-//#include <Adafruit_PCD8544.h>
 #include <U8g2lib.h>
 #include "GlideTime.h"
 #include "consts.h"
 
 
 U8G2_HX1230_96X68_F_3W_SW_SPI display(U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 8, /* reset=*/  7 );
+//U8G2_HX1230_96X68_1_3W_SW_SPI display(U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 8, /* reset=*/  7 );
 
 GlideTimeInit gtInit = GlideTimeInit(display);
 GlideTimeMain gtMain = GlideTimeMain(gtInit);
@@ -28,15 +31,18 @@ void setup() {
 //  dispFonts.begin(display);
   // put your setup code here, to run once:
   display.setContrast(LCD_CONTRAST);
-  display.clearDisplay();
+  display.clearBuffer();
   //  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println(String("GlideTime\n") + VERSION);
-  display.println("battery V=");
-  display.println(vbatt);
-  display.println("clk corr per");
-  display.println(gtInit.get_config().clock_correction_increment_period());
-  display.display();
+//  display.setCursor(0, 0);
+  display.setCursor(30, 30);
+  display.setFont(u8g2_font_helvR10_tf);
+  display.print(String(F("GlideTime\n")) + VERSION + F("\n"));
+  display.print(F("battery V=\n"));
+  display.print(vbatt);
+  display.print(F("\nclk corr per\n"));
+  display.print(gtInit.get_config().clock_correction_increment_period());
+//  display.display();
+  display.sendBuffer();
   delay(2000);
 
   gtInit.initialize(&gtMain);

@@ -77,8 +77,9 @@ void GlideTimeConfig::configureClockCalibration(){
   // Calculate ms error and save to eeprom
   long ms_diff_per_minute = ((long)CALIBRATION_DURATION_SECONDS*1000 - (long)(end_ms-begin_ms)) / (CALIBRATION_DURATION_SECONDS/60);
   EEPROM.put(EEPROM_ADDR_CALIBRATION_DATA, ms_diff_per_minute);
-  display->clearDisplay();
+   display->clearDisplay();
   display->setCursor(0,10);
+ /*  TOO MUCH MEMORY needed to keep these strings as variables to print 
   display->print("start:");
   display->println(begin_ms);
   display->print("end:");
@@ -86,6 +87,7 @@ void GlideTimeConfig::configureClockCalibration(){
   display->print("diff: ");
   display->println(end_ms-begin_ms);
   display->print("ms/min: ");
+*/
   display->println(ms_diff_per_minute);
   display->display();
   set_clock_cal();

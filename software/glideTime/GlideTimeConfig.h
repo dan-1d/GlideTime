@@ -1,10 +1,7 @@
 #ifndef GLIDETIMECONF_H_
 #define GLIDETIMECONF_H_
 
-//#include <Adafruit_GFX.h>
-//#include <Adafruit_PCD8544.h>
-//#include <U8g2_for_Adafruit_GFX.h>
-#include <U8g2lib.h>
+//#include <U8g2lib.h>
 #include <Bounce2.h>
 #include <EEPROM.h>
 #include "GlideTime.h"
@@ -84,7 +81,7 @@ public:
       }
       if( debouncer1.rose() ){
         /// Synchronize to serial input reference clock
-        display->println("Syncing...");
+        display->println(F("Syncing..."));
         display->display();
         configureClockCalibration();
       }
